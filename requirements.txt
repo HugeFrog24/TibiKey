@@ -1,0 +1,5 @@
+keyboard
+pyperclip
+pyautogui
+PyQt5
+openai
