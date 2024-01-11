@@ -1,0 +1,29 @@
+{
+    "max_tokens": 256,
+    "allowed_tokens_range": [
+        1,
+        4096
+    ],
+    "hotkeys": {
+        "general": {
+            "key_combo": "ctrl+shift+e",
+            "name": "General",
+            "prompt": ""
+        },
+        "proofread": {
+            "key_combo": "ctrl+shift+r",
+            "name": "Proofreading",
+            "prompt": "Please proofread and give me the corrected text without extra explanations."
+        },
+        "fact_check": {
+            "key_combo": "ctrl+shift+u",
+            "name": "Fact Checking",
+            "prompt": "Please fact check and correct the following text."
+        },
+        "auto_complete": {
+            "key_combo": "ctrl+shift+f",
+            "name": "Auto Completion",
+            "prompt": "Please auto complete the following text without further explanations. If there are preceding questions or task introductions, please preserve them."
+        }
+    }
+}

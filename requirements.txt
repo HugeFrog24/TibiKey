@@ -1,5 +1,6 @@
+httpx
 keyboard
-pyperclip
-pyautogui
-PyQt5
 openai
+PyQt5
+pyautogui
+pyperclip
