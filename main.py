@@ -6,7 +6,8 @@ import pyperclip
 import time
 from openai import OpenAI
 from PyQt5.QtWidgets import QApplication, QStyle
-from gui import SettingsDialog, TrayIcon
+from gui.settings_dialog import SettingsDialog
+from gui.tray_icon import TrayIcon
 import sys
 
 CONFIG_FILE = "config.json"

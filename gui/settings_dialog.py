@@ -1,7 +1,7 @@
 import json
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import (QAction, QDialog, QFileDialog, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QMenu, QPushButton, QSystemTrayIcon, QTextEdit, QVBoxLayout)
+from PyQt5.QtWidgets import (QDialog, QFileDialog, QGroupBox, QHBoxLayout, QLabel, QLineEdit, QPushButton, QTextEdit, QVBoxLayout)
 
 CONFIG_FILE = "config.json"
 
@@ -104,26 +104,3 @@ class SettingsDialog(QDialog):
                 self.logTextBox.setTextCursor(cursor)
         except FileNotFoundError:
             pass
-
-class TrayIcon(QSystemTrayIcon):
-    def __init__(self, icon, dialog, app, parent=None):
-        super(TrayIcon, self).__init__(icon, parent)
-        self.dialog = dialog
-        self.app = app
-        self.setToolTip("Your Service Name")
-        
-        # Create the menu
-        self.menu = QMenu()
-        settings_action = QAction("Settings", self)
-        settings_action.triggered.connect(self.show_settings_dialog)
-        self.menu.addAction(settings_action)
-        
-        quit_action = QAction("Quit", self)
-        quit_action.triggered.connect(self.app.quit)
-        self.menu.addAction(quit_action)
-        
-        self.setContextMenu(self.menu)
-        self.show()
-
-    def show_settings_dialog(self):
-        self.dialog.show()
