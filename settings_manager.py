@@ -75,3 +75,15 @@ class SettingsManager:
     def reset(self):
         self.settings = {}
         self.save()
+
+    def save_models_to_cache(self, models):
+        cache_file = "models_cache.json"
+        with open(cache_file, "w") as f:
+            json.dump(models, f)
+
+    def load_models_from_cache(self):
+        cache_file = "models_cache.json"
+        if Path(cache_file).exists():
+            with open(cache_file, "r") as f:
+                return json.load(f)
+        return []

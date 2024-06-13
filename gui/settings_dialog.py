@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (QCheckBox, QComboBox, QDialog, QFileDialog,
                              QMessageBox, QPushButton, QTextEdit, QVBoxLayout)
 
 from utils import get_openai_models, validate_max_tokens, validate_model
+import logging
 
 
 class SettingsDialog(QDialog):
@@ -113,8 +114,7 @@ class SettingsDialog(QDialog):
     def loadSettings(self):
         try:
             max_tokens = self.settings.get("max_tokens", 256)
-            allowed_tokens_range = self.settings.get(
-                "allowed_tokens_range", [1, 4096])
+            allowed_tokens_range = self.settings.get("allowed_tokens_range", [1, 4096])
             validate_max_tokens(max_tokens, allowed_tokens_range)
 
             self.apiKeyEdit.setText(self.settings.get("api_key", ""))
@@ -122,31 +122,38 @@ class SettingsDialog(QDialog):
             # Clear the modelComboBox before adding new items
             self.modelComboBox.clear()
 
-            # Populate the modelComboBox with available models only if client
-            # is not None
-            if self.client:
-                available_models = get_openai_models(self.client)
-                self.modelComboBox.addItems(available_models)
-
-            # Enable the modelComboBox if it contains any models
-            self.modelComboBox.setEnabled(self.modelComboBox.count() > 0)
-
-            # Find the index of the model from settings and set it
-            model_from_config = self.settings.get("model")
-            model_index = self.modelComboBox.findText(model_from_config)
-            if model_index != -1:
-                self.modelComboBox.setCurrentIndex(model_index)
+            # Determine the correct models to load
+            api_key = self.settings.get("api_key", "")
+            if self.client and api_key == self.apiKeyEdit.text():
+                available_models = self.settings.load_models_from_cache()
             else:
-                # Set to first model if not found
-                self.modelComboBox.setCurrentIndex(0)
+                if self.client:
+                    available_models = get_openai_models(self.client)
+                    self.settings.save_models_to_cache(available_models)
+                else:
+                    available_models = []
+
+            # Ensure the current model from settings is included in the list
+            model_from_config = self.settings.get("model")
+            if model_from_config not in available_models:
+                available_models.append(model_from_config)
+
+            if available_models:
+                self.modelComboBox.addItems(available_models)
+                model_index = self.modelComboBox.findText(model_from_config)
+                if model_index != -1:
+                    self.modelComboBox.setCurrentIndex(model_index)
+                else:
+                    self.modelComboBox.setCurrentIndex(0)
+            else:
+                # Clear the modelComboBox and disable it if no models are available
+                self.modelComboBox.clear()
+                self.modelComboBox.setEnabled(False)
 
             self.maxTokensEdit.setText(str(max_tokens))
             self.streamCheckBox.setChecked(self.settings.get("stream", False))
         except Exception as e:
-            QMessageBox.warning(
-                self,
-                "Settings Load Error",
-                f"Could not load settings: {e}")
+            QMessageBox.warning(self, "Settings Load Error", f"Could not load settings: {e}")
 
     def onModelChanged(self, index):
         model = self.modelComboBox.currentText()
@@ -156,8 +163,7 @@ class SettingsDialog(QDialog):
     def saveSettings(self):
         try:
             max_tokens = int(self.maxTokensEdit.text())
-            allowed_tokens_range = self.settings.get(
-                "allowed_tokens_range", [1, 4096])
+            allowed_tokens_range = self.settings.get("allowed_tokens_range", [1, 4096])
             validate_max_tokens(max_tokens, allowed_tokens_range)
             api_key = self.apiKeyEdit.text()
 
@@ -169,15 +175,23 @@ class SettingsDialog(QDialog):
                 if models:
                     self.modelComboBox.clear()
                     self.modelComboBox.addItems(models)
+                    self.settings.save_models_to_cache(models)
+                    self.modelComboBox.setEnabled(True)
                 else:
-                    QMessageBox.warning(
-                        self, "Invalid API Key", "The provided API key is invalid.")
+                    QMessageBox.warning(self, "Invalid API Key", "The provided API key is invalid.")
+                    self.modelComboBox.clear()
+                    self.modelComboBox.setEnabled(False)
                     return  # Do not save settings or close the dialog
 
             # Validate and set the model only if necessary
             model = self.modelComboBox.currentText()
-            if model != self.settings.get("model"):
+            if model and model != self.settings.get("model"):
                 validate_model(model, self.client)
+                self.settings.set("model", model)
+
+            # Save the selected model
+            model = self.modelComboBox.currentText()
+            if model:
                 self.settings.set("model", model)
 
             self.settings.set("api_key", api_key)
@@ -201,3 +215,4 @@ class SettingsDialog(QDialog):
                     self.logTextBox.setTextCursor(cursor)
         except FileNotFoundError:
             pass
+
