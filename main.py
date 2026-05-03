@@ -4,6 +4,7 @@ import time
 from functools import partial
 
 import keyboard
+import openai
 import pyautogui
 import pyperclip
 from openai import OpenAI
@@ -35,27 +36,28 @@ settings = SettingsManager(config_file=CONFIG_FILE, defaults_file=PROMPTS_FILE)
 
 api_key = settings.get("api_key")
 model = settings.get("model")
-user_prompts = settings.get("hotkeys", {})
+user_prompts = settings.get("hotkeys") or {}
 
 # Initialize the OpenAI client only if api_key is available
 client = None
 if api_key:
-    client = OpenAI(api_key=api_key)
-    # Now that we have the client, set it in the settings manager
-    settings.set_client(client)
+    try:
+        client = OpenAI(api_key=api_key)
+        # Now that we have the client, set it in the settings manager
+        settings.set_client(client)
+    except openai.AuthenticationError as e:
+        logger.error(f"Invalid API key: {e}")
 
 # Initialize the settings dialog and tray icon after QApplication
 settings_dialog = SettingsDialog(client, settings)
-# Correct the icon retrieval method
+style = app.style()
+assert style is not None
 tray_icon = TrayIcon(
-    app.style().standardIcon(
-        QStyle.StandardPixmap.SP_DesktopIcon),
+    style.standardIcon(QStyle.StandardPixmap.SP_DesktopIcon),
     settings_dialog,
     app)
 
 # Function to handle the key combination event
-
-
 def on_triggered(prompt):
     time.sleep(0.5)
     original_clipboard = pyperclip.paste()
@@ -95,7 +97,6 @@ def on_triggered(prompt):
         if original_clipboard is not None:
             pyperclip.copy(original_clipboard)
 
-
 # Show the settings dialog on application start
 settings_dialog.show()
 
@@ -123,16 +124,14 @@ for action, hotkey_info in user_prompts.items():
         key_combo = hotkey_info.get("key_combo")
         # Default to empty string if not found
         prompt = hotkey_info.get("prompt", "")
-        logger.debug(f"Attempting to register hotkey {
-                     key_combo} for action '{action}' with prompt '{prompt}'")
+        logger.debug(f"Attempting to register hotkey {key_combo} for action '{action}' with prompt '{prompt}'")
         if key_combo is not None and prompt is not None:  # Check for None instead of falsiness
             try:
                 keyboard.add_hotkey(key_combo, partial(on_triggered, prompt))
                 logger.info(
                     f"Registered hotkey {key_combo} for action '{action}'")
             except Exception as e:
-                logger.error(f"Failed to register hotkey {
-                             key_combo} for action '{action}': {e}")
+                logger.error(f"Failed to register hotkey {key_combo} for action '{action}': {e}")
         else:
             logger.error(
                 f"Missing 'key_combo' or 'prompt' for action '{action}'")

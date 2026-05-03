@@ -17,7 +17,7 @@ class TrayIcon(QSystemTrayIcon):
         self.menu.addAction(settings_action)
 
         quit_action = QAction("Quit", self)
-        quit_action.triggered.connect(QCoreApplication.instance().quit)
+        quit_action.triggered.connect(QCoreApplication.quit)
         self.menu.addAction(quit_action)
 
         # Set the "Your Service Name" entry to be bold

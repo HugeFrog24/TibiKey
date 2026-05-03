@@ -6,7 +6,7 @@
     ],
     "hotkeys": {
         "general": {
-            "key_combo": "ctrl+shift+e",
+            "key_combo": "ctrl+shift+g",
             "name": "General",
             "prompt": ""
         },
@@ -21,7 +21,7 @@
             "prompt": "Please fact check and correct the following text."
         },
         "auto_complete": {
-            "key_combo": "ctrl+shift+f",
+            "key_combo": "ctrl+shift+y",
             "name": "Auto Completion",
             "prompt": "Please auto complete the following text without further explanations. If there are preceding questions or task introductions, please preserve them."
         }

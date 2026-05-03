@@ -26,8 +26,7 @@ class SettingsManager:
                 self.user_settings = json.load(f)
                 # Remove settings from user_settings if they are the same as
                 # the defaults
-                for key in list(
-                        self.user_settings):  # Use list to avoid RuntimeError for changing dict size during iteration
+                for key in self.user_settings:  # Use list to avoid RuntimeError for changing dict size during iteration
                     if key in self.settings and self.user_settings[key] == self.settings[key]:
                         self.user_settings.pop(key)
                 # Merge remaining user settings over defaults
@@ -75,3 +74,15 @@ class SettingsManager:
     def reset(self):
         self.settings = {}
         self.save()
+
+    def save_models_to_cache(self, models):
+        cache_file = "models_cache.json"
+        with open(cache_file, "w") as f:
+            json.dump(models, f)
+
+    def load_models_from_cache(self):
+        cache_file = "models_cache.json"
+        if Path(cache_file).exists():
+            with open(cache_file, "r") as f:
+                return json.load(f)
+        return []
